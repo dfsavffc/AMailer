@@ -1,16 +1,20 @@
 import logging
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 from app.schemas import EmailRequest
 from app.services.email_service import send_email
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+limiter = Limiter(key_func=get_remote_address)
 
 
 @router.post("/send-email")
-async def send_email_endpoint(email_request: EmailRequest) -> dict[str, str]:
+@limiter.limit("60/minute")
+async def send_email_endpoint(request: Request, email_request: EmailRequest) -> dict[str, str]:
     """
     Endpoint to send an anonymous email.
     """

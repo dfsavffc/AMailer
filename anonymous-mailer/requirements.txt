@@ -9,4 +9,5 @@ httpx
 aiosmtplib
 ruff
 mypy
+slowapi
 types-aiofiles
