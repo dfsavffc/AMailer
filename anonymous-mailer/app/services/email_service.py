@@ -35,9 +35,12 @@ async def send_email(recipient: str, subject: str, message: str) -> None:
         )
         msg.attach(MIMEText(body, "plain"))
 
-        is_starttls = settings.SMTP_PORT == 465
+        # Port 465 uses implicit TLS (use_tls=True)
+        # Port 587 uses STARTTLS (start_tls=True)
+        use_implicit_tls = settings.SMTP_PORT == 465
+        use_starttls = settings.SMTP_PORT == 587
 
-        logger.info(f"Connecting to SMTP server {settings.SMTP_SERVER}:{settings.SMTP_PORT} (STARTTLS={is_starttls})...")
+        logger.info(f"Connecting to SMTP server {settings.SMTP_SERVER}:{settings.SMTP_PORT} (Implicit TLS={use_implicit_tls}, STARTTLS={use_starttls})...")
 
         await aiosmtplib.send(
             msg,
@@ -45,8 +48,8 @@ async def send_email(recipient: str, subject: str, message: str) -> None:
             port=settings.SMTP_PORT,
             username=settings.SMTP_USERNAME,
             password=settings.SMTP_PASSWORD,
-            use_tls=not is_starttls,
-            start_tls=is_starttls,
+            use_tls=use_implicit_tls,
+            start_tls=use_starttls,
             timeout=settings.SMTP_TIMEOUT,
         )
 
