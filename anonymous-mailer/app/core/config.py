@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     SMTP_USERNAME: str
     SMTP_PASSWORD: str
     SMTP_FROM_EMAIL: str
-    SMTP_TIMEOUT: int = 10  # seconds
+    SMTP_TIMEOUT: int = 60  # seconds
     
     MOCK_EMAIL: bool = False
     EMAIL_FOOTER: str = "Sent via AMailer - https://amailer.onrender.com/"

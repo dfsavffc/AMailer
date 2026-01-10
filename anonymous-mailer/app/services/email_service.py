@@ -56,5 +56,5 @@ async def send_email(recipient: str, subject: str, message: str) -> None:
         logger.info(f"Email sent successfully to {recipient}")
 
     except Exception as e:
-        logger.error(f"Failed to send email to {recipient}: {e}")
+        logger.error(f"Failed to send email to {recipient} via {settings.SMTP_SERVER}:{settings.SMTP_PORT}. Error: {e}")
         raise e
