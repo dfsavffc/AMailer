@@ -12,9 +12,10 @@ class Settings(BaseSettings):
     SMTP_USERNAME: str
     SMTP_PASSWORD: str
     SMTP_FROM_EMAIL: str
+    SMTP_TIMEOUT: int = 10  # seconds
     
     MOCK_EMAIL: bool = False
-    EMAIL_FOOTER: str = "Sent via AMailer - www.amailer.com"
+    EMAIL_FOOTER: str = "Sent via AMailer - https://amailer.onrender.com/"
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
