@@ -1,0 +1,219 @@
+:root {
+    /* Theme Configuration */
+    --background-color: #000000;
+    --card-background-color: #1b0a3f;
+    --card-border-color: #1b0a3f;
+    --card-border-width: 2px;
+    --card-border-radius: 24px;
+    --header-title-color: #ffffff;
+    --header-subtitle-color: #8473fe;
+    --input-background: #3e138f;
+    --input-text-color: #f0effe;
+    --input-border-color: #6c52e1;
+    --input-border-width: 1px;
+    --input-border-radius: 16px;
+    --input-focus-border-color: #6c52e1;
+    --primary-color: #3e138f;
+    --primary-hover-color: #4e1ab5;
+    --button-text-color: #ffffff;
+    --button-border-radius: 24px;
+    --success-color: #48e054;
+    --error-color: #d34c77;
+
+    /* Font Sizes */
+    --header-title-size: 3.6rem;
+    --header-subtitle-size: 1.6rem;
+
+    /* Pico.css Overrides */
+    --background: var(--background-color);
+    --color: var(--input-text-color);
+    --h1-color: var(--header-title-color);
+    --primary: var(--primary-color);
+    --primary-hover: var(--primary-hover-color);
+}
+
+body {
+    font-family: 'JetBrains Mono', Arial;
+    background-color: var(--background-color);
+}
+
+body > main {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 1rem;
+}
+
+article {
+    background-color: var(--card-background-color);
+    border: var(--card-border-width) solid var(--card-border-color);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+    border-radius: var(--card-border-radius);
+    animation: fadeIn 0.8s ease-out;
+    padding: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.page-header {
+    text-align: left;
+    margin-top: 4rem;
+    margin-bottom: 0.1rem;
+    padding: 0 0.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.logo-container {
+    margin-bottom: 1rem;
+}
+
+.logo {
+    max-height: 60px;
+    width: auto;
+}
+
+.page-header h1 {
+    color: var(--header-title-color);
+    margin-bottom: 0.5rem;
+    font-size: var(--header-title-size);
+    font-family: 'JetBrains Mono', Arial;
+    font-weight: 700;
+}
+
+.page-header p {
+    color: var(--header-subtitle-color);
+    margin-bottom: 0;
+    font-size: var(--header-subtitle-size);
+    font-family: 'JetBrains Mono', Arial;
+    font-weight: 400;
+}
+
+#emailForm {
+    padding: 2rem;
+    margin-bottom: 0;
+}
+
+input, textarea {
+    background-color: var(--input-background) !important;
+    border: var(--input-border-width) solid var(--input-border-color) !important;
+    color: var(--input-text-color) !important;
+    font-family: 'JetBrains Mono', sans-serif;
+    border-radius: var(--input-border-radius) !important;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+textarea {
+    resize: none;
+    min-height: 100px;
+    overflow-y: hidden;
+}
+
+input:focus, textarea:focus {
+    --pico-border-color: var(--input-focus-border-color);
+    border-color: var(--input-focus-border-color) !important;
+    box-shadow: 0 0 0 0.2rem rgba(108, 82, 225, 0.25) !important; /* Matches focus color */
+    outline: none !important;
+}
+
+input[aria-invalid], textarea[aria-invalid] {
+    background-image: none !important;
+    padding-right: 1rem !important;
+}
+
+button {
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+    color: var(--button-text-color) !important;
+    font-family: 'JetBrains Mono', sans-serif;
+    font-weight: 600;
+    border-radius: var(--button-border-radius) !important;
+    transition: all 0.2s ease;
+    margin-bottom: 0;
+    margin-top: 1rem;
+    min-height: 3.5rem;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+button:hover {
+    background-color: var(--primary-hover-color) !important;
+    border-color: var(--primary-hover-color) !important;
+    box-shadow: 0 0 15px rgba(54, 88, 128, 0.6);
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+.status-message-container {
+    height: 2rem;
+    margin-top: 1rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.success-message, .error-message {
+    display: none;
+    text-align: center;
+    font-weight: bold;
+    animation: fadeInSimple 0.3s ease-out;
+}
+
+.success-message {
+    color: var(--success-color);
+}
+
+.error-message {
+    color: var(--error-color);
+}
+
+@keyframes fadeInSimple {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.label-with-counter {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.char-count {
+    color: var(--header-title-color);
+    font-size: 0.8rem;
+}
+
+.validation-error {
+    display: block;
+    color: var(--error-color);
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+    font-weight: bold;
+    min-height: 1.2em;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.validation-error.visible {
+    opacity: 1;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}

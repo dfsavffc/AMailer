@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+pydantic
+pydantic-settings
+email-validator
+pytest
+pytest-asyncio
+httpx
+aiosmtplib
+ruff
+mypy
+types-aiofiles

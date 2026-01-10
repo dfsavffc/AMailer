@@ -1,0 +1,29 @@
+---
+description: Backend-py3: Microservices Framework
+alwaysApply: false
+---
+
+Backend-py3 is a framework for writing microservices in Python. It provides standardized infrastructure that facilitates development, testing, and deployment of Python microservices.
+
+## Repository Structure
+
+The backend-py3 repository has the following main structure:
+
+- **services/** - Main directory containing microservice code
+  - Each microservice is located in a separate subdirectory
+  - Each service has its own configuration file `service.yaml`
+- **libraries/** - Shared libraries used by multiple services
+  - Reusable components are placed here
+  - When creating new shared code, it's preferred to place it here
+- **taxi/** - Common code for all services in the base framework
+  - Existing code not intended for extension
+  - Includes core framework components
+- **plugins/** - Plugins for the code generation system
+  - Extensions for automatic code creation
+
+## Architectural Principles
+
+Backend-py3 adheres to the following key principles:
+
+1. **Microservices Architecture** - Each service performs a specific business function
+2. **Code Generation** - Automatic creation of client and server code from specifications

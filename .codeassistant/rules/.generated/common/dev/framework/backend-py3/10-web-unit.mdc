@@ -1,0 +1,370 @@
+---
+description: Web Unit in Backend-py3
+alwaysApply: false
+---
+
+# Web Unit in Backend-py3
+
+## Glossary
+
+Handler (англ. handler) -- HTTP request handler
+
+## Purpose and Role of Web Unit
+
+The web unit is the main component for handling REST API requests in the backend-py3 architecture. It provides:
+- HTTP request processing based on declarative OpenAPI specifications
+- Request routing to appropriate handlers
+- Input and output data validation
+- Type safety of API contracts
+
+## Web Unit Configuration in service.yaml
+
+The web unit is declared in the `units` block of the `service.yaml` configuration file:
+
+```yaml
+units:
+  - name: web
+    # web block includes REST API handler generation
+    web:
+        description: Yandex.Taxi example-service api
+        hostname:
+            production:
+              - api-hostname.taxi.yandex.net
+            testing:
+              - api-hostname.taxi.tst.yandex.net
+        num_procs:
+            production: 4
+            testing: 2
+```
+
+Key settings:
+- `description`: Service API description
+- `hostname`: Hosts where the API is available (for different environments)
+- `num_procs`: Number of processes for request handling
+
+## Declarative API Description with OpenAPI
+
+### OpenAPI Specification Structure
+
+API specifications are located in the `docs/yaml/api/` directory and are structured as follows:
+- Separation by domain areas (`jobs.yaml`, `tasks.yaml`, etc.)
+- Common definitions are moved to `definitions.yaml` (located in the parent directory `docs/yaml/`)
+- Linking through `$ref` references
+
+Example structure:
+```
+docs/yaml/
+├── definitions.yaml       # Common definitions
+└── api/
+    ├── jobs.yaml          # API for working with jobs
+    ├── tasks.yaml         # API for working with individual tasks
+    └── ...
+```
+
+### OpenAPI Specification Requirements
+
+- Documentation of all request and response fields
+- Strict typing: explicit type specification for all fields
+- Complete error model descriptions
+- Definition of valid values through validators (min, max, pattern, etc.)
+- Use of common models through `$ref` to ensure consistency
+- Explicit format specification for dates, UUIDs, and other special types
+
+Example OpenAPI specification:
+```yaml
+# specification version that this schema follows
+openapi: 3.0.0
+# meta-information about the schema, currently doesn't affect anything, but required by spec
+info:
+   title: Yandex Taxi Service Name API
+   version: '1.0'
+​
+# In paths all handlers are described
+paths:
+   # handler url
+   /v1/users/update:
+       # http method
+       post:
+           description: Handler that does something.
+           operationId: UpdateUsers
+           # parameter list
+           parameters:
+             - in: query
+               name: id
+               schema:
+                   type: string
+               description: some id
+             - in: query
+               name: operation
+               schema:
+                   type: string
+               required: true
+               description: operation id
+           # request body
+           requestBody:
+               content:
+                   # expected Content-Type
+                   application/json:
+                       schema:
+                           # expected json schema
+                           type: object
+                           properties:
+                               name:
+                                   type: string
+                               age:
+                                   type: integer
+                           additionalProperties: false
+           # Possible responses
+           # Only codes that are explicitly returned by the service should be described
+           responses:
+               '200':
+                   description: OK
+                   content:
+                       # Response Content-type
+                       application/json:
+                           schema:
+                               # response and request body schemas can be moved to common components
+                               # of the current file for reuse
+                               $ref: '#/components/schemas/UpdateUsersResponse'
+               '404':
+                   description: Requested user not found
+                   content:
+                       application/json:
+                           schema:
+                               # response and request body schemas can be moved to common components
+                               # definitions.yaml for reuse in other files
+                               $ref: '../definitions.yaml#/components/schemas/Error'
+​
+​
+components:
+   # in schemas common models can be defined and referenced from requestBody and responses schemas
+   schemas:
+        UpdateUsersResponse:
+            type: object
+            additionalProperties: false
+            required:
+                - code
+            properties:
+                code:
+                    type: string
+                    description: String with 'success' text
+                    pattern: success
+```
+
+### Connection between Specifications and Handlers
+
+Each operation in the OpenAPI specification:
+- Must have a unique `operationId` in CamelCase
+- Handler file is created based on snake_case version of operationId
+- Request models, responses, and error codes are generated automatically
+- Specifications are the source of truth for everything related to the API
+
+## Structure and Organization of API Handlers
+
+### File Location
+
+- API handlers are placed in the `{service_name}/api/` directory as a flat list, or in `{service_name}/api/some/url/path/`, where `some/url/path/` is the handler URL
+- File names correspond to the snake_case version of operationId from the specification
+
+### Standard Handler Structure
+
+```python
+# REST API handler
+from service_name.generated.service.swagger import requests
+from service_name.generated.service.swagger import responses
+from service_name.generated.service.swagger import models
+from service_name.generated.web import web_context
+
+
+async def handle(
+    request: requests.OperationName,
+    context: web_context.Context,
+) -> responses.OPERATION_NAME_RESPONSES:
+    # Request processing business logic
+    return responses.OperationName200(
+        data=models.api.SomeResponseModel(
+            field1='value1',
+            field2='value2',
+        ),
+    )
+```
+
+### Working with Context
+
+- Context contains all necessary dependencies (databases, clients, caches)
+- Context instance is created at service startup and passed to each handler
+- Access to components through `context.component_name`
+- For web unit, a single context instance is created that is used by all handlers
+
+## Code Generation for Web Unit
+
+### Running Code Generation
+
+Code generation must be run in the following cases:
+- After changing OpenAPI specifications (`docs/yaml/api/*.yaml`)
+- After changing service configuration (`service.yaml`)
+- After changing components that require code generation
+
+Command to run code generation:
+```bash
+$(arc root)/taxi/backend-py3$ make gen-{service-name}
+```
+
+Where `{service-name}` is your service name (e.g., `make gen-dmp-sched`).
+
+### Code Generation Artifacts
+
+After running code generation, the following artifacts are created:
+
+1. **Request and Response Models**
+   - Location: `{service_name}/generated/service/swagger/`
+   - Include:
+     - `requests.py` - classes for incoming requests
+       - Access to query and header parameters through request.query_parameter_name and request.header_parameter_name respectively
+       - Access to body object through request.body.body_parameter_name
+     - `responses.py` - classes for outgoing responses
+     - `models/*.py` - data models used in requests and responses
+
+2. **Web Unit Context**
+   - Location: `{service_name}/generated/web/web_context.py`
+   - Contains:
+     - `Context` class with all connected components
+     - Typed annotations for all components
+     - Component initialization and shutdown logic
+
+3. **Data Validators**
+   - Location: integrated into request and response models
+   - Provide data validation according to OpenAPI specification
+
+### Important Points
+
+- **Never modify** files in `generated/` directories manually
+- If code generation errors occur, check the correctness of OpenAPI specifications
+- Before making changes to any OpenAPI specification file, **always** look at the `definitions.yaml` file with common components and try to reuse objects from there
+
+## API Design Rules
+
+### HTTP Method Semantics
+
+- GET: only for non-modifying operations, without body
+- POST: for resource creation and modifying operations
+- PUT, DELETE: must be idempotent, URL is the idempotency key (rarely used)
+- PATCH: for partial resource updates (rarely used)
+
+### Request Parameter Distribution
+
+- Path parameters: for resource identifiers
+- Query parameters: for filtering, sorting, pagination
+- Body: for complex data structures
+- Headers: for metadata, authorization, idempotency
+
+### Operation Idempotency
+
+- Header `X-Idempotency-Token` is used to ensure idempotency
+- When receiving a repeated request with the same token, the same response should be returned
+- Operations should be idempotent if physically possible
+
+### Pagination
+
+- Preferably through cursor-based pagination
+- Cursor should be opaque to the client (string)
+- Alternatives: `newer_than`/`older_than`, offset/limit (rarely)
+
+### Data Formatting Standards
+
+- Dates in ISO 8601: `2018-01-28T12:08:48.372+03:00` or `2018-01-28T12:08:48.372Z`
+- Coordinates in GeoJSON: `[lon, lat]`
+- Monetary amounts with explicit currency specification and in string type
+- All temporal data with timezone specification
+
+## Error Handling
+
+### Error Structure
+
+```json
+{
+    "code": "machine_readable_error_code",
+    "message": "Human-readable error message",
+    "details": {
+        "occurred_at": "2019-01-03T12:45:34.192Z",
+        "errors": [
+            { "code": "error_1", "message": "Error details" }
+        ]
+    }
+}
+```
+
+Error code is duplicated in the `X-YaTaxi-Error-Code` header.
+
+### HTTP Error Codes
+
+- 400: incorrect request parameters
+- 403: identification/authorization/authentication issues
+- 404: requested resource not found
+- 405: this HTTP method is not applicable to the specified URL
+- 409: client state inconsistency errors
+- 410: resource was deleted
+- 429: client makes too many requests
+- 500: server error
+
+### Error Codes
+
+- Must be machine-readable and understandable
+- Code must accurately identify the error type
+
+Example error return:
+```python
+return responses.OperationName404(
+    data=models.api.ErrorResponse(
+        code='RESOURCE_NOT_FOUND',
+        message='Requested resource not found',
+    ),
+)
+```
+
+## API Testing
+
+### Test Structure
+
+- Tests are located in the `test_{service_name}/web/` directory
+- Named `test_{operation_id_snake_case}.py`
+- Use pytest and fixtures
+
+### Test Example
+
+```python
+async def test_get_user(web_app_client):
+    user = web_app_client.get(
+        '/user', 
+        params={
+            'name': 'John',
+        },
+    )
+    assert user['name'] == 'John'
+    assert user['age'] == 25
+```
+
+### Testing Principles
+
+- All response codes of each handler must be covered by tests
+- No need to write tests for invalid API schema input data
+- Testing edge cases
+- Mocks for external dependencies
+
+## Best Practices
+
+### General Principles
+
+- **Explicit is better than implicit** - API should be understandable without additional documentation
+- **Consistency** - maintaining a unified style and approach in the API
+- **Static checks** - using OpenAPI specifications and code generation to ensure type safety
+- **Error handling** - standardized error handling and returning clear messages
+- **Documentation** - all APIs should be documented in OpenAPI specifications
+
+### Common Mistakes
+
+- **Using nullable** - avoid null in JSON, this creates type polymorphism
+- **Open JSON objects** - in JSON objects, keys should be defined in advance
+- **Lack of validation** - all input data must be strictly validated
+- **Lack of idempotency** - APIs should be idempotent
+- **Personal data** - avoid transmitting personal data through the API

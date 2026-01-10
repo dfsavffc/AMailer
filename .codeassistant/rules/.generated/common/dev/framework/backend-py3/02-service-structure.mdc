@@ -1,0 +1,140 @@
+---
+description: Service Structure in Backend-py3
+alwaysApply: false
+---
+
+This document describes the principles of organizing microservices in the backend-py3 framework and the role of the service.yaml configuration file.
+
+## Unit-based Architecture
+
+A microservice in backend-py3 consists of functional modules - "units":
+
+1. **Web units** — REST API request handlers
+2. **STQ units** — asynchronous task queue handlers
+3. **Cron units** — tasks scheduled via system `cron`
+
+## Central Role of service.yaml
+
+The `service.yaml` file is a key element in defining the microservice structure:
+
+- Defines service dependencies (clients, libraries, databases)
+- Contains configurations for the entire service and individual units
+- Declaratively describes the composition and settings of units
+- Allows configuring components at both service and individual unit levels
+
+Example `service.yaml` structure:
+```yaml
+# General settings for the entire service
+clients:
+  services:
+    - service-name
+
+libraries:
+  - lib-name
+
+config:
+  - CONFIG_PARAM
+
+# List of service units
+units:
+  # Web unit
+  - name: web
+    web:
+      # Web unit settings
+    
+  # STQ unit
+  - name: stq
+    stq-worker:
+      # STQ unit settings
+    
+  # Cron unit
+  - name: cron
+    cron:
+      # Cron unit settings
+```
+
+## General Service Structure
+
+The standard service directory structure includes:
+
+```
+services/{service-name}/                # Root service directory with hyphens (example: dmp-sched)
+├── {service_name}/                     # Main service code with underscores (example: dmp_sched)
+│   ├── api/                            # API handlers (web unit), if unit is connected in service.yaml
+│   │   ├── common/                     # Common API components
+│   │   └── {operation_id}.py           # API handlers named by operationId from OpenAPI
+│   ├── stq/                            # Task queue handlers (stq unit), if unit is connected in service.yaml
+│   ├── crontasks/                      # Scheduled tasks (cron unit), if unit is connected in service.yaml
+│   ├── components/                     # Reusable components
+│   ├── generated/                      # Auto-generated code (do not edit manually)
+│   └── storage/                        # Code for working with data storage
+│       ├── postgresql/                 # Code for working with PostgreSQL
+│       │   └── queries/                # SQL queries
+│           ├── {query_name}.sql        # Static SQL queries
+│           └── {query_name}.sqlt       # SQL templates
+├── docs/                               # Documentation
+│   └── yaml/api/                       # OpenAPI specifications
+|── gen/                                # Автоматически сгенерированный код (не редактировать вручную) 
+├── memory_bank/                        # Memory bank, if it exists for the microservice
+├── test_{service_name}/                # Tests
+│   ├── conftest.py                     # File with common fixtures
+│   ├── web/                            # API tests (web unit), if unit is connected in service.yaml
+│   ├── stq/                            # Task queue handler tests (stq unit), if unit is connected in service.yaml
+│   └── cron/                           # Cron task tests (cron unit), if unit is connected in service.yaml
+├── service.yaml                        # Service configuration
+```
+
+## Unit Isolation Principle
+
+Each unit represents a separate functional unit:
+
+- Units are built into separate deb packages
+- Each unit has its own entry point for startup
+- Units can be deployed on different physical machines
+- Configurations in service.yaml can be defined both globally and individually for each unit
+
+## Context-oriented Approach
+
+For dependency management, a context pattern is used:
+
+- A context class is generated for each unit
+- The context contains all connected components, clients, databases, etc.
+- A context instance is created at startup and passed to handlers
+- Web and STQ units use a shared context, cron tasks receive individual instances
+
+## Extensibility through Components
+
+The service is extended using components:
+
+- Components are defined in service.yaml at the service or unit level
+- Components are initialized in the order of their declaration
+- Components can have lifecycle methods (on_startup, on_shutdown)
+
+Example component definition in service.yaml:
+```yaml
+# Components at service level
+components:
+  - name: component_name
+    class: service_name.module.ComponentClass
+
+units:
+  - name: web
+    # Components at unit level
+    components:
+      - name: unit_component
+        class: service_name.module.UnitComponentClass
+```
+
+## Testing
+
+Tests are organized according to the same modular structure as the code itself:
+
+- Tests are located in the `test_{service_name}` directory
+- Test structure reflects the structure of units (web, stq, cron)
+- Common fixtures are defined in conftest.py
+
+## Naming Conventions
+
+- Service directories in `services/` use hyphenated names: `services/dmp-sched/`
+- Python packages use underscore names: `dmp_sched/`
+- API handlers are named by snake_case version of operationId from OpenAPI specification
