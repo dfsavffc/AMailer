@@ -35,10 +35,7 @@ async def send_email(recipient: str, subject: str, message: str) -> None:
         )
         msg.attach(MIMEText(body, "plain"))
 
-        # Determine TLS mode based on port
-        # Port 465: Implicit TLS (use_tls=True, start_tls=False)
-        # Port 587: STARTTLS (use_tls=False, start_tls=True)
-        is_starttls = settings.SMTP_PORT == 587
+        is_starttls = settings.SMTP_PORT == 465
 
         logger.info(f"Connecting to SMTP server {settings.SMTP_SERVER}:{settings.SMTP_PORT} (STARTTLS={is_starttls})...")
 
