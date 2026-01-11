@@ -29,23 +29,22 @@ AMailer is a secure and anonymous email sending service. It allows users to send
 1.  **Clone the repository:**
     ```bash
     git clone <repository-url>
-    cd anonymous-mailer
+    cd AMailer
     ```
 
 2.  **Configure Environment:**
-    Create a `.env` file in the `anonymous-mailer` directory based on `.env.example`:
+    Create a `.env` file in the root directory based on `.env.example`:
     ```env
-    SMTP_SERVER=smtp.example.com
-    SMTP_PORT=587
-    SMTP_USERNAME=your_username
-    SMTP_PASSWORD=your_password
-    SMTP_FROM_EMAIL=noreply@example.com
+    SMTP_SERVER=smtp.mail.ru
+    SMTP_PORT=465
+    SMTP_USERNAME=your_email@mail.ru
+    SMTP_PASSWORD=your_app_password
+    SMTP_FROM_EMAIL=your_email@mail.ru
     ```
-    > **WARNING:** Never commit your `.env` file to version control (GitHub, GitLab, etc.). It contains sensitive passwords.
+    > **WARNING:** Never commit your `.env` file to version control. It contains sensitive passwords.
 
 3.  **Run with Make:**
     ```bash
-    cd anonymous-mailer
     make build
     make run
     ```
@@ -55,6 +54,10 @@ AMailer is a secure and anonymous email sending service. It allows users to send
     ```bash
     make dev
     ```
+
+### Hosting
+
+This project is deployed on **Amvera**: [https://amailer-dfsavffc.amvera.io/](https://amailer-dfsavffc.amvera.io/)
 
 ### Project Structure
 
