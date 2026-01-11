@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     SMTP_TIMEOUT: int = 60  # seconds
     
     MOCK_EMAIL: bool = False
-    EMAIL_FOOTER: str = "Sent via AMailer - https://amailer.onrender.com/"
+    EMAIL_FOOTER: str = "Sent via AMailer - https://amailer-dfsavffc.amvera.io"
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
