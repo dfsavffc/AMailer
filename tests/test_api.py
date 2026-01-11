@@ -46,13 +46,6 @@ def test_send_email_empty_fields(client):
             "message": "",
         },
     )
-    # Assuming empty strings are allowed by schema but might be handled by logic
-    # If schema enforces min_length, this should be 422.
-    # Let's assume basic validation passes for now, or adjust if schema changes.
-    # Based on current schema (not visible but implied), it might pass or fail.
-    # Let's check if we need to update schema first.
-    # For now, let's assume it returns 200 or 422 depending on implementation.
-    # Given the simple schema, it likely passes.
     assert response.status_code in [200, 422]
 
 
