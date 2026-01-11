@@ -5,8 +5,7 @@ meta:
     version: latest
 
 build:
-  dockerfile: Dockerfile
-  context: anonymous-mailer
+  dockerfile: anonymous-mailer/Dockerfile
   skip: false
 
 run:
